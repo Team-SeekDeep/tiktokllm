@@ -22,7 +22,7 @@ METADATA_FILE = "video_metadata.csv"
 RESULTS_FILE = "results.csv"
 VIDEO_TRACKING_FILE = "downloaded_videos.json"
 
-INFERENCE_RATE_LIMIT = 15  # Number of inferences per minute
+INFERENCE_RATE_LIMIT = 15  # Number of inferences per minute / set to 0 for no limit
 
 def setup_argparse():
     """Setup command line arguments."""
@@ -210,7 +210,7 @@ def perform_inference(
     question = video_info["question"]
     question_prompt = video_info.get("question_prompt", "")
 
-    sleep_time = 60 / INFERENCE_RATE_LIMIT  # Sleep to respect rate limit
+    sleep_time = 60 / INFERENCE_RATE_LIMIT if INFERENCE_RATE_LIMIT > 0 else 0
     
     # Verify the file exists in Google's File API
     if not verify_file_exists(tracking, qid, client):
@@ -252,7 +252,7 @@ def perform_inference(
         except Exception as e:
             logger.error(f"Error performing inference on video with QID {qid}: {str(e)}")
             if attempt < max_retries:
-                time.sleep(2 * sleep_time)
+                time.sleep(4 * sleep_time)
     
     logger.error(f"All {max_retries+1} attempts failed for QID {qid}")
     return None
