@@ -1,0 +1,6 @@
+videos/*
+.venv
+.env
+*.json
+*.csv
+*.log

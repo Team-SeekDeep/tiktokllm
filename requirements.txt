@@ -1,0 +1,7 @@
+pytubefix
+google-genai
+requests
+pandas
+datasets
+tdqm
+dotenv
