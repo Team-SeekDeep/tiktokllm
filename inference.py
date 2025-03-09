@@ -22,6 +22,8 @@ METADATA_FILE = "video_metadata.csv"
 RESULTS_FILE = "results.csv"
 VIDEO_TRACKING_FILE = "downloaded_videos.json"
 
+INFERENCE_RATE_LIMIT = 15  # Number of inferences per minute
+
 def setup_argparse():
     """Setup command line arguments."""
     parser = argparse.ArgumentParser(description="Perform inference on videos using Google's Generative AI API")
@@ -207,6 +209,8 @@ def perform_inference(
     qid = video_info["qid"]
     question = video_info["question"]
     question_prompt = video_info.get("question_prompt", "")
+
+    sleep_time = 60 / INFERENCE_RATE_LIMIT  # Sleep to respect rate limit
     
     # Verify the file exists in Google's File API
     if not verify_file_exists(tracking, qid, client):
@@ -238,17 +242,17 @@ def perform_inference(
             # Extract the answer
             answer = response.text.strip()
             if answer:
-                preview = answer[:100] + "..." if len(answer) > 100 else answer
-                logger.info(f"Got answer: {preview}")
+                logger.info(f"Got answer: {answer}")
+                time.sleep(sleep_time)
                 return answer
             else:
                 logger.warning(f"Empty response for QID {qid}")
                 if attempt < max_retries:
-                    time.sleep(2 * (attempt + 1))  # Exponential backoff
+                    time.sleep(sleep_time)
         except Exception as e:
             logger.error(f"Error performing inference on video with QID {qid}: {str(e)}")
             if attempt < max_retries:
-                time.sleep(2 * (attempt + 1))  # Exponential backoff
+                time.sleep(2 * sleep_time)
     
     logger.error(f"All {max_retries+1} attempts failed for QID {qid}")
     return None
